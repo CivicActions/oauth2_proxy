@@ -71,12 +71,16 @@ func (s *SessionState) EncryptedString(c *cookie.Cipher) (string, error) {
 
 func decodeSessionStatePlain(v string) (s *SessionState, err error) {
 	chunks := strings.Split(v, " ")
-	if len(chunks) != 2 {
-		return nil, fmt.Errorf("could not decode session state: expected 2 chunks got %d", len(chunks))
+	user := ""
+	if len(chunks) == 1 {
+		// for Admin users, Gitlab 10 only returns the email
+	} else if len(chunks) == 2 {
+		user = strings.TrimPrefix(chunks[1], "user:")
+	} else {
+		return nil, fmt.Errorf("could not decode session state: expected 1-2 chunks got %d", len(chunks))
 	}
 
 	email := strings.TrimPrefix(chunks[0], "email:")
-	user := strings.TrimPrefix(chunks[1], "user:")
 	if user == "" {
 		user = strings.Split(email, "@")[0]
 	}
